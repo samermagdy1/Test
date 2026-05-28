@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CafePOS Pro</title>
+  <title>CafePOS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link
     href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap"
@@ -3206,6 +3206,56 @@
     .shift-hist-stat { padding:8px;background:var(--bg3);border-radius:8px;text-align:center; }
     .shift-hist-stat .lbl { font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px; }
     .shift-hist-stat .val { font-size:16px;font-weight:900;color:var(--gold); }
+
+    /* ─── REACTIVE / DYNAMIC UI ─── */
+    @keyframes valueFlash {
+      0%   { opacity:0; transform:translateY(-5px) scale(.97); }
+      60%  { opacity:1; transform:translateY(1px)  scale(1.02); }
+      100% { opacity:1; transform:translateY(0)    scale(1); }
+    }
+    .val-updated { animation:valueFlash 0.28s cubic-bezier(.34,1.56,.64,1) both; }
+    @keyframes itemEnterA {
+      from { opacity:0; transform:translateY(10px) scale(.97); }
+      to   { opacity:1; transform:translateY(0)    scale(1); }
+    }
+    .menu-item-card { animation:itemEnterA 0.2s ease both; }
+    .menu-item-card:nth-child(1){animation-delay:.02s}
+    .menu-item-card:nth-child(2){animation-delay:.04s}
+    .menu-item-card:nth-child(3){animation-delay:.06s}
+    .menu-item-card:nth-child(4){animation-delay:.08s}
+    .menu-item-card:nth-child(5){animation-delay:.10s}
+    .menu-item-card:nth-child(6){animation-delay:.12s}
+    .menu-item-card:nth-child(7){animation-delay:.14s}
+    .menu-item-card:nth-child(8){animation-delay:.16s}
+    .cart-item { animation:itemEnterA 0.18s ease both; }
+    .stat-card  { animation:itemEnterA 0.22s ease both; }
+    @keyframes badgePulse {
+      0%   { transform:scale(1); }
+      45%  { transform:scale(1.4); }
+      100% { transform:scale(1); }
+    }
+    .badge-pulse { animation:badgePulse 0.32s cubic-bezier(.34,1.56,.64,1); }
+    @keyframes shimmer {
+      0%   { filter:brightness(1); }
+      50%  { filter:brightness(1.35); }
+      100% { filter:brightness(1); }
+    }
+    .currency-changed { animation:shimmer 0.4s ease; }
+    #live-clock {
+      font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;
+      letter-spacing:.4px;min-width:85px;text-align:center;
+    }
+    #autosave-dot {
+      width:7px;height:7px;border-radius:50%;background:var(--green);
+      display:none;box-shadow:0 0 6px var(--green);margin-inline-start:6px;
+      animation:dotBlink 1.2s ease infinite;
+      vertical-align:middle;
+    }
+    @keyframes dotBlink {
+      0%,100%{opacity:1;transform:scale(1)}
+      50%{opacity:.4;transform:scale(.75)}
+    }
+    .settings-autosaved { border-color:var(--green)!important;transition:border-color .4s ease; }
   </style>
 </head>
 
@@ -3378,6 +3428,8 @@
         <button class="icon-btn" onclick="toggleMobileSidebar()" style="display:none" id="mobile-menu-btn">☰</button>
         <h1 class="topbar-title" id="page-title">نقطة البيع</h1>
         <div class="topbar-actions">
+          <span id="live-clock">--:--:--</span>
+          <span id="autosave-dot" title="جارٍ الحفظ..."></span>
           <select class="form-select" id="topbar-lang" onchange="setLanguage(this.value)"
             style="padding:6px 10px;font-size:12px;width:auto;">
             <option value="ar">🇸🇦 AR</option>
@@ -3390,6 +3442,8 @@
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
             <option value="RUB">RUB</option>
+            <option value="SAR">SAR</option>
+            <option value="AED">AED</option>
           </select>
           <div class="icon-btn" onclick="navigate('dashboard')" title="التقارير">📊</div>
         </div>
@@ -4460,7 +4514,29 @@
       if (tbc) tbc.value = newCur;
       calcCart(); renderPOS(); renderMenuManagement(); renderTables(); renderInvoices(); renderDashboard(); renderReports(); saveDB();
     }
-    function setCurrency(c) { currentCurrency = c; DB.settings.currency = c; calcCart(); saveDB(); }
+    function setCurrency(c) {
+      currentCurrency = c;
+      DB.settings.currency = c;
+      calcCart();
+      // Update POS items prices live
+      renderPOSItems();
+      // Update whichever other page is currently visible
+      const activePage = document.querySelector('.page.active');
+      if (activePage) {
+        const pid = activePage.id;
+        if (pid === 'page-menu')     renderMenuManagement();
+        if (pid === 'page-dashboard') renderDashboard();
+        if (pid === 'page-reports')  renderReports();
+        if (pid === 'page-invoices') renderInvoices();
+        if (pid === 'page-shift')    renderShiftPage();
+      }
+      // Animate price elements to signal currency changed
+      document.querySelectorAll('.item-price,.mim-price,.stat-value,.cart-grand').forEach(el => {
+        el.classList.remove('currency-changed');
+        requestAnimationFrame(() => el.classList.add('currency-changed'));
+      });
+      saveDB();
+    }
     function updateUIText() {
       const map = {
         'ni-pos': 'pos', 'ni-dash': 'dashboard', 'ni-menu': 'menu', 'ni-tables': 'tables',
@@ -4489,16 +4565,19 @@
       const pg = document.getElementById('page-' + page);
       if (pg) pg.classList.add('active');
       document.querySelectorAll('[data-page="' + page + '"]').forEach(n => n.classList.add('active'));
-      document.querySelector('.mobile-bottom-nav .mobile-nav-item:nth-child(' + ({ pos: 1, menu: 2, tables: 3, reports: 4, settings: 5 }[page] || 1) + ')').classList.add('active');
+      const mniMap = {pos:1, menu:2, tables:3, reports:4, settings:5};
+      const mniEl = document.querySelector('.mobile-bottom-nav .mobile-nav-item:nth-child(' + (mniMap[page] || 1) + ')');
+      if (mniEl) mniEl.classList.add('active');
       document.getElementById('page-title').textContent = t(page);
-      if (page === 'dashboard') { renderDashboard(); }
-      if (page === 'menu') { renderMenuManagement(); }
-      if (page === 'tables') { renderTables(); }
-      if (page === 'invoices') { renderInvoices(); }
-      if (page === 'reports') { renderReports(); }
-      if (page === 'settings') { loadSettings(); }
-      if (page === 'data') { updateStorageStats(); }
-      if (page === 'shift') { renderShiftPage(); }
+      // Render the target page fresh
+      if (page === 'dashboard') renderDashboard();
+      if (page === 'menu')      renderMenuManagement();
+      if (page === 'tables')    renderTables();
+      if (page === 'invoices')  renderInvoices();
+      if (page === 'reports')   renderReports();
+      if (page === 'settings')  { loadSettings(); }
+      if (page === 'data')      updateStorageStats();
+      if (page === 'shift')     renderShiftPage();
     }
     function toggleSidebar() {
       const sb = document.getElementById('sidebar');
@@ -4603,9 +4682,27 @@
     }
     function removeFromCart(idx) { cart.splice(idx, 1); renderCart(); }
     function changeQty(idx, delta) {
-      cart[idx].qty = Math.max(1, cart[idx].qty + delta);
-      if (cart[idx].qty <= 0) { removeFromCart(idx); return; }
-      renderCart();
+      if (!cart[idx]) return;
+      const newQty = cart[idx].qty + delta;
+      if (newQty <= 0) { removeFromCart(idx); return; }
+      cart[idx].qty = newQty;
+      // In-place DOM update for speed (no full re-render)
+      const row = document.getElementById('cart-item-' + idx);
+      if (row) {
+        const qNum = row.querySelector('.qty-num');
+        if (qNum) { qNum.textContent = newQty; qNum.classList.remove('val-updated'); requestAnimationFrame(() => qNum.classList.add('val-updated')); }
+        const priceEl = row.querySelector('.cart-item-price');
+        if (priceEl) { priceEl.textContent = linePrice(cart[idx]).toFixed(2); priceEl.classList.remove('val-updated'); requestAnimationFrame(() => priceEl.classList.add('val-updated')); }
+        // Update cart badge
+        const totalQty = cart.reduce((s, c) => s + c.qty, 0);
+        const badge = document.getElementById('cart-count');
+        const mobileBadge = document.getElementById('mobile-cart-badge');
+        if (badge) badge.textContent = totalQty;
+        if (mobileBadge) mobileBadge.textContent = totalQty;
+      } else {
+        renderCart(); // fallback
+      }
+      calcCart();
     }
     function clearCart() {
       if (!cart.length) return;
@@ -4615,9 +4712,10 @@
       const container = document.getElementById('cart-items');
       const empty = document.getElementById('cart-empty');
       const totalQty = cart.reduce((s, c) => s + c.qty, 0);
-      document.getElementById('cart-count').textContent = totalQty;
+      const badge = document.getElementById('cart-count');
       const mobileBadge = document.getElementById('mobile-cart-badge');
-      if (mobileBadge) mobileBadge.textContent = totalQty;
+      if (badge) { badge.textContent = totalQty; badge.classList.remove('badge-pulse'); requestAnimationFrame(() => badge.classList.add('badge-pulse')); }
+      if (mobileBadge) { mobileBadge.textContent = totalQty; mobileBadge.classList.remove('badge-pulse'); requestAnimationFrame(() => mobileBadge.classList.add('badge-pulse')); }
       if (!cart.length) {
         empty.style.display = ''; container.innerHTML = ''; container.appendChild(empty);
         calcCart(); return;
@@ -4656,6 +4754,16 @@
       if (ci.discVal > 0) { if (ci.discType === 'pct') p = p * (1 - ci.discVal / 100); else p = Math.max(0, p - ci.discVal); }
       return p * ci.qty;
     }
+    // Helper: update element text with flash animation only when value changes
+    function setValAnimated(id, text) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (el.textContent === text) return; // skip if unchanged
+      el.classList.remove('val-updated');
+      el.textContent = text;
+      requestAnimationFrame(() => el.classList.add('val-updated'));
+    }
+
     function calcCart() {
       const subtotal = cart.reduce((s, c) => s + linePrice(c), 0);
       let discAmt = 0;
@@ -4666,10 +4774,10 @@
       const vatAmt = afterDisc * (DB.settings.vatRate / 100);
       const grand = afterDisc + vatAmt;
       const cs = CURRENCY_SYMBOLS[currentCurrency];
-      document.getElementById('cart-subtotal').textContent = subtotal.toFixed(2) + ' ' + cs;
-      document.getElementById('cart-discount').textContent = '-' + discAmt.toFixed(2) + ' ' + cs;
-      document.getElementById('cart-vat').textContent = vatAmt.toFixed(2) + ' ' + cs;
-      document.getElementById('cart-grand').textContent = grand.toFixed(2) + ' ' + cs;
+      setValAnimated('cart-subtotal', subtotal.toFixed(2) + ' ' + cs);
+      setValAnimated('cart-discount', '-' + discAmt.toFixed(2) + ' ' + cs);
+      setValAnimated('cart-vat',      vatAmt.toFixed(2) + ' ' + cs);
+      setValAnimated('cart-grand',    grand.toFixed(2) + ' ' + cs);
       document.getElementById('lbl-vat-cart').textContent = `${t('vat')} (${DB.settings.vatRate}%)`;
       // Currency conversion display
       const pcSel = document.getElementById('pay-currency');
@@ -4682,7 +4790,7 @@
           const converted = grand / rate;
           const tcs = (CURRENCY_SYMBOLS[tgt] || tgt);
           convRow.style.display = 'flex';
-          document.getElementById('cart-converted').textContent = converted.toFixed(2) + ' ' + tcs;
+          setValAnimated('cart-converted', converted.toFixed(2) + ' ' + tcs);
         } else { convRow.style.display = 'none'; }
       }
     }
@@ -4765,6 +4873,8 @@
       const _pr = document.getElementById('pay-rate'); if (_pr) _pr.value = '';
       renderCart();
       renderInvoices();
+      // Reactively update dashboard stats (even if not on dashboard page)
+      renderDashboard();
       if (DB.currentShift) renderShiftPage();
     }
     function printInvoice(inv, lang) {
@@ -5422,12 +5532,14 @@
       const weekRev = weekInvs.reduce((s, i) => s + i.grand, 0);
       const avgOrder = activeInvs.length ? allRev / activeInvs.length : 0;
       const cs = CURRENCY_SYMBOLS[currentCurrency];
-      document.getElementById('dash-stats').innerHTML = `
+      const statsEl = document.getElementById('dash-stats');
+      const newHTML = `
     <div class="stat-card stat-gold"><div class="stat-label">مبيعات اليوم</div><div class="stat-value">${todayRev.toFixed(0)}<small style="font-size:14px"> ${cs}</small></div><div class="stat-sub">${todayInvs.length} فاتورة اليوم</div><div class="stat-icon">💰</div></div>
     <div class="stat-card stat-green"><div class="stat-label">إيرادات الأسبوع</div><div class="stat-value">${weekRev.toFixed(0)}<small style="font-size:14px"> ${cs}</small></div><div class="stat-sub">${weekInvs.length} فاتورة</div><div class="stat-icon">📈</div></div>
     <div class="stat-card stat-blue"><div class="stat-label">إجمالي الفواتير</div><div class="stat-value">${activeInvs.length}</div><div class="stat-sub">إجمالي: ${allRev.toFixed(0)} ${cs}</div><div class="stat-icon">🧾</div></div>
     <div class="stat-card stat-purple"><div class="stat-label">متوسط الطلب</div><div class="stat-value">${avgOrder.toFixed(0)}<small style="font-size:14px"> ${cs}</small></div><div class="stat-sub">لكل فاتورة</div><div class="stat-icon">📊</div></div>
   `;
+      if (statsEl && statsEl.innerHTML !== newHTML) statsEl.innerHTML = newHTML;
       renderWeeklyChart();
       renderHourlyChart();
       renderPaymentChart();
@@ -5589,8 +5701,68 @@
     }
 
     // ══════════════════════════════════════════
-    //  SETTINGS
+    //  SETTINGS — LIVE PREVIEW + AUTO-SAVE
     // ══════════════════════════════════════════
+    let _autoSaveTimer = null;
+    let _liveListenersAttached = false;
+
+    /** Show the auto-save dot briefly */
+    function flashAutoSaveDot() {
+      const dot = document.getElementById('autosave-dot');
+      if (!dot) return;
+      dot.style.display = 'inline-block';
+      clearTimeout(dot._timer);
+      dot._timer = setTimeout(() => { dot.style.display = 'none'; }, 1800);
+    }
+
+    /** Read current settings form values and apply them to DB + UI immediately */
+    function applyLiveSettings() {
+      const nameAr = document.getElementById('set-name-ar')?.value || DB.settings.nameAr;
+      const nameEn = document.getElementById('set-name-en')?.value || DB.settings.nameEn;
+      const nameRu = document.getElementById('set-name-ru')?.value || DB.settings.nameRu;
+      const address = document.getElementById('set-address')?.value ?? DB.settings.address;
+      const vatRateEl = document.getElementById('set-vat-rate');
+      if (vatRateEl) DB.settings.vatRate = parseFloat(vatRateEl.value) || DB.settings.vatRate;
+      DB.settings.nameAr = nameAr;
+      DB.settings.nameEn = nameEn;
+      DB.settings.nameRu = nameRu;
+      DB.settings.address = address;
+      // Live sidebar update
+      const sbName = document.getElementById('sb-name');
+      const sbBranch = document.getElementById('sb-branch');
+      if (sbName) sbName.textContent = DB.settings['name' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1)] || nameAr;
+      if (sbBranch) sbBranch.textContent = address;
+      // Recalc cart in case VAT changed
+      calcCart();
+    }
+
+    /** Debounced auto-save: saves 1.2s after last keystroke */
+    function scheduleAutoSave() {
+      applyLiveSettings();
+      clearTimeout(_autoSaveTimer);
+      _autoSaveTimer = setTimeout(() => {
+        saveSettings();
+        flashAutoSaveDot();
+      }, 1200);
+    }
+
+    /** Attach live listeners to settings inputs (idempotent) */
+    function attachLiveSettingsListeners() {
+      if (_liveListenersAttached) return;
+      _liveListenersAttached = true;
+      const liveIds = ['set-name-ar','set-name-en','set-name-ru','set-address',
+                       'set-vat','set-cashier','set-vat-rate','set-inv-num','set-whatsapp'];
+      liveIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', scheduleAutoSave);
+      });
+      // Currency select — instant apply
+      const cur = document.getElementById('set-currency');
+      if (cur) cur.addEventListener('change', () => {
+        saveSettings();
+        flashAutoSaveDot();
+      });
+    }
     function loadSettings() {
       const s = DB.settings;
       document.getElementById('set-name-ar').value = s.nameAr || '';
@@ -5617,6 +5789,8 @@
         }
       });
       updateRatesPreview();
+      // Attach live listeners after fields are populated
+      attachLiveSettingsListeners();
     }
     function handleSettingsLogoUpload(e) {
       const file = e.target.files[0]; if (!file) return;
@@ -5644,6 +5818,11 @@
       DB.settings.exchangeRates = rates;
       currentCurrency = DB.settings.currency;
       document.getElementById('topbar-currency').value = currentCurrency;
+      // Instantly sync all UI elements
+      updateSidebarBranding();
+      updateUIText();
+      calcCart();
+      renderPOSItems();
       saveDB(); updateSidebarBranding(); calcCart();
       showToast('success', t('settingsSaved'));
     }
@@ -6535,6 +6714,35 @@ document.addEventListener('keydown', function(e){
     }
 
     // ══════════════════════════════════════════
+    //  LIVE CLOCK + AUTO-REFRESH
+    // ══════════════════════════════════════════
+    function startLiveClock() {
+      function tick() {
+        const el = document.getElementById('live-clock');
+        if (!el) return;
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const s = String(now.getSeconds()).padStart(2,'0');
+        el.textContent = h + ':' + m + ':' + s;
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    /** Auto-refresh active page stats every 30s */
+    function startAutoRefresh() {
+      setInterval(() => {
+        const activePage = document.querySelector('.page.active');
+        if (!activePage) return;
+        const pid = activePage.id;
+        if (pid === 'page-dashboard') renderDashboard();
+        if (pid === 'page-reports')   renderReports();
+        if (pid === 'page-shift')     renderShiftPage();
+      }, 30000);
+    }
+
+    // ══════════════════════════════════════════
     //  EXCHANGE RATES HELPERS
     // ══════════════════════════════════════════
     /** Get current exchange rate for a currency (EGP per 1 unit) */
@@ -6590,6 +6798,9 @@ document.addEventListener('keydown', function(e){
       if (window.innerWidth <= 600) {
         document.getElementById('mobile-menu-btn').style.display = 'flex';
       }
+      // Start live clock and periodic auto-refresh
+      startLiveClock();
+      startAutoRefresh();
     });
 
     // Report period change
