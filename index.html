@@ -1,5 +1,4 @@
-
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -1142,10 +1141,7 @@
       margin-top: 2px;
     }
 
-    .cart-total-row.vat {
-      color: var(--text3);
-      font-size: 11px;
-    }
+
 
     .cart-disc-row {
       display: flex;
@@ -3311,12 +3307,8 @@
             id="cafe-name-ru" placeholder="Кафе Звезда"></div>
         <div class="form-group"><label class="form-label" id="lbl-address">العنوان</label><input class="form-input"
             id="cafe-address" placeholder="القاهرة، مصر"></div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label" id="lbl-vat">الرقم الضريبي (VAT)</label><input
-              class="form-input" id="cafe-vat" placeholder="123456789"></div>
-          <div class="form-group"><label class="form-label" id="lbl-cashier">اسم الكاشير</label><input
+        <div class="form-group"><label class="form-label" id="lbl-cashier">اسم الكاشير</label><input
               class="form-input" id="cafe-cashier" placeholder="محمد أحمد"></div>
-        </div>
         <div class="setup-nav">
           <button class="btn btn-ghost" onclick="setupBack()">→ رجوع</button>
           <button class="btn btn-gold" onclick="setupNext()">التالي ←</button>
@@ -3335,10 +3327,7 @@
             <option value="RUB">🇷🇺 روبل روسي (RUB)</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label" id="lbl-vat-rate">نسبة الضريبة (VAT%)</label>
-          <input class="form-input" id="setup-vat-rate" type="number" value="14" min="0" max="30">
-        </div>
+
         <div class="form-group">
           <label class="form-label" id="lbl-invoice-start">رقم الفاتورة الابتدائي</label>
           <input class="form-input" id="setup-inv-start" type="number" value="1001" min="1">
@@ -3506,7 +3495,7 @@
                 <div style="background:var(--bg2);border-radius:6px;padding:5px 8px;margin-bottom:5px;">
                   <div class="cart-total-row"><span id="lbl-sub">المجموع</span><span id="cart-subtotal">0.00</span></div>
                   <div class="cart-total-row"><span id="lbl-disc">الخصم</span><span id="cart-discount" style="color:var(--red)">-0.00</span></div>
-                  <div class="cart-total-row vat"><span id="lbl-vat-cart">ضريبة (14%)</span><span id="cart-vat">0.00</span></div>
+
                   <div class="cart-total-row grand" style="border-top:1px solid var(--border);padding-top:4px;margin-top:2px;">
                     <span id="lbl-grand">الإجمالي</span><span id="cart-grand">0.00</span>
                   </div>
@@ -3748,8 +3737,7 @@
                   id="set-name-ru"></div>
               <div class="form-group"><label class="form-label">العنوان</label><input class="form-input"
                   id="set-address"></div>
-              <div class="form-group"><label class="form-label">الرقم الضريبي</label><input class="form-input"
-                  id="set-vat"></div>
+
               <div class="form-group"><label class="form-label">اسم الكاشير</label><input class="form-input"
                   id="set-cashier"></div>
               <div class="form-group">
@@ -3772,8 +3760,7 @@
                   <option value="RUB">RUB روبل</option>
                 </select>
               </div>
-              <div class="form-group"><label class="form-label">نسبة الضريبة (%)</label><input class="form-input"
-                  id="set-vat-rate" type="number" min="0" max="30"></div>
+
               <div class="form-group"><label class="form-label">رقم الفاتورة الحالي</label><input class="form-input"
                   id="set-inv-num" type="number"></div>
               <div class="form-group">
@@ -4286,8 +4273,8 @@
     let DB = {
       settings: {
         nameAr: 'مقهى النجوم', nameEn: 'Star Café', nameRu: 'Кафе Звезда',
-        address: '', vat: '', cashier: 'الكاشير',
-        currency: 'EGP', vatRate: 14, invoiceNum: 1001,
+        address: '', cashier: 'الكاشير',
+        currency: 'EGP', invoiceNum: 1001,
         logo: '', lang: 'ar', theme: 'dark', whatsapp: '+201129724884',
         exchangeRates: { USD: 50.5, EUR: 55.0, RUB: 0.55, SAR: 13.5, AED: 13.75 }
       },
@@ -4486,10 +4473,8 @@
       DB.settings.nameEn = document.getElementById('cafe-name-en').value || 'Star Café';
       DB.settings.nameRu = document.getElementById('cafe-name-ru').value || 'Кафе Звезда';
       DB.settings.address = document.getElementById('cafe-address').value;
-      DB.settings.vat = document.getElementById('cafe-vat').value;
       DB.settings.cashier = document.getElementById('cafe-cashier').value || 'الكاشير';
       DB.settings.currency = document.getElementById('setup-currency').value;
-      DB.settings.vatRate = parseFloat(document.getElementById('setup-vat-rate').value) || 14;
       DB.settings.invoiceNum = parseInt(document.getElementById('setup-inv-start').value) || 1001;
       DB.settings.lang = setupLang;
       DB.settings.logo = logoDataURL;
@@ -4614,8 +4599,6 @@
         'mni-pos': 'pos', 'mni-menu': 'menu', 'mni-tables': 'tables', 'mni-reports': 'reports', 'mni-settings': 'settings',
       };
       Object.entries(map).forEach(([id, key]) => { const el = document.getElementById(id); if (el) el.textContent = t(key); });
-      const vatLbl = document.getElementById('lbl-vat-cart');
-      if (vatLbl) vatLbl.textContent = `${t('vat')} (${DB.settings.vatRate}%)`;
       const pgTitle = document.getElementById('page-title');
       if (pgTitle) { const active = document.querySelector('.nav-item.active'); if (active) pgTitle.textContent = t(active.dataset.page); }
     }
@@ -4837,14 +4820,11 @@
       if (currentDiscType === 'pct') discAmt = subtotal * dv / 100;
       else discAmt = Math.min(subtotal, dv);
       const afterDisc = subtotal - discAmt;
-      const vatAmt = afterDisc * (DB.settings.vatRate / 100);
-      const grand = afterDisc + vatAmt;
+      const grand = afterDisc;
       const cs = CURRENCY_SYMBOLS[currentCurrency];
       setValAnimated('cart-subtotal', subtotal.toFixed(2) + ' ' + cs);
       setValAnimated('cart-discount', '-' + discAmt.toFixed(2) + ' ' + cs);
-      setValAnimated('cart-vat',      vatAmt.toFixed(2) + ' ' + cs);
       setValAnimated('cart-grand',    grand.toFixed(2) + ' ' + cs);
-      document.getElementById('lbl-vat-cart').textContent = `${t('vat')} (${DB.settings.vatRate}%)`;
       // Currency conversion display
       const pcSel = document.getElementById('pay-currency');
       const prInp = document.getElementById('pay-rate');
@@ -4913,8 +4893,8 @@
       const dv = parseFloat(document.getElementById('order-disc-val').value) || 0;
       let discAmt = currentDiscType === 'pct' ? subtotal * dv / 100 : Math.min(subtotal, dv);
       const afterDisc = subtotal - discAmt;
-      const vatAmt = afterDisc * (DB.settings.vatRate / 100);
-      const grand = afterDisc + vatAmt;
+      const vatAmt = 0;
+      const grand = afterDisc;
       const printLang = document.getElementById('print-lang-sel').value;
       // Get selected table
       const tblSel = document.getElementById('pos-table-sel');
@@ -5070,10 +5050,7 @@
             <td colspan="2" style="padding:1px 4px;color:#c00;">${tl.discount}</td>
             <td style="padding:1px 4px;text-align:end;color:#c00;">- ${inv.discAmt.toFixed(2)} ${cs}</td>
           </tr>` : ''}
-          <tr>
-            <td colspan="2" style="padding:1px 4px;color:#666;">${tl.vat} (${s.vatRate}%)</td>
-            <td style="padding:1px 4px;text-align:end;color:#666;">${inv.vatAmt.toFixed(2)} ${cs}</td>
-          </tr>
+
           ${convBlock}
         </table>
 
@@ -5482,7 +5459,6 @@
     </table>
     <div class="cart-total-row"><span>المجموع</span><span>${inv.subtotal?.toFixed(2)} ${cs}</span></div>
     <div class="cart-total-row" style="color:var(--red)"><span>الخصم</span><span>-${inv.discAmt?.toFixed(2)} ${cs}</span></div>
-    <div class="cart-total-row" style="color:var(--text3)"><span>الضريبة</span><span>${inv.vatAmt?.toFixed(2)} ${cs}</span></div>
     <div class="cart-total-row grand"><span>الإجمالي</span><span>${inv.grand?.toFixed(2)} ${cs}</span></div>
   `;
       document.getElementById('modal-inv-title').textContent = `فاتورة #${inv.num}`;
@@ -5526,8 +5502,8 @@
       });
       const discAmt = inv.discType === 'pct' ? subtotal * (inv.discVal / 100) : Math.min(subtotal, inv.discVal || 0);
       const afterDisc = subtotal - discAmt;
-      const vatAmt = afterDisc * (DB.settings.vatRate / 100);
-      const grand = afterDisc + vatAmt;
+      const vatAmt = 0;
+      const grand = afterDisc;
       const cs = CURRENCY_SYMBOLS[inv.currency] || inv.currency;
       const el = document.getElementById('edit-new-total');
       if (el) el.textContent = grand.toFixed(2) + ' ' + cs;
@@ -5549,7 +5525,7 @@
       const subtotal = inv.items.reduce((s, ci) => s + ci.price * ci.qty, 0);
       const discAmt = inv.discType === 'pct' ? subtotal * (inv.discVal / 100) : Math.min(subtotal, inv.discVal || 0);
       const afterDisc = subtotal - discAmt;
-      const vatAmt = afterDisc * (DB.settings.vatRate / 100);
+      const vatAmt = 0;
       inv.subtotal = subtotal;
       inv.discAmt = discAmt;
       inv.vatAmt = vatAmt;
@@ -5708,11 +5684,10 @@
       const byCur = {};
       invs.forEach(i => {
         const c = i.currency || 'EGP';
-        if (!byCur[c]) byCur[c] = { count: 0, gross: 0, disc: 0, vat: 0, net: 0, cash: 0, card: 0, net_pay: 0 };
+        if (!byCur[c]) byCur[c] = { count: 0, gross: 0, disc: 0, net: 0, cash: 0, card: 0, net_pay: 0 };
         byCur[c].count++;
         byCur[c].gross += (i.subtotal || 0);
         byCur[c].disc += (i.discAmt || 0);
-        byCur[c].vat += (i.vatAmt || 0);
         byCur[c].net += (i.grand || 0);
         if (i.payMethod === 'cash') byCur[c].cash += i.grand;
         else if (i.payMethod === 'card') byCur[c].card += i.grand;
@@ -5724,7 +5699,7 @@
         curBox.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text3)">لا توجد بيانات في هذه الفترة</div>`;
       } else {
         curBox.innerHTML = `<div style="overflow-x:auto"><table class="data-table"><thead><tr>
-      <th>العملة</th><th>عدد الفواتير</th><th>الإجمالي قبل الضريبة</th><th>الخصومات</th><th>الضريبة</th><th>نقدي</th><th>بطاقة</th><th>تحويل/شبكة</th><th>الصافي</th>
+      <th>العملة</th><th>عدد الفواتير</th><th>الإجمالي قبل الخصم</th><th>الخصومات</th><th>نقدي</th><th>بطاقة</th><th>تحويل/شبكة</th><th>الصافي</th>
     </tr></thead><tbody>` + curKeys.map(k => {
           const r = byCur[k];
           const sym = CURRENCY_SYMBOLS[k] || k;
@@ -5733,7 +5708,6 @@
         <td>${r.count}</td>
         <td>${r.gross.toFixed(2)} ${sym}</td>
         <td style="color:var(--red)">-${r.disc.toFixed(2)} ${sym}</td>
-        <td style="color:var(--text2)">${r.vat.toFixed(2)} ${sym}</td>
         <td>${r.cash.toFixed(2)} ${sym}</td>
         <td>${r.card.toFixed(2)} ${sym}</td>
         <td>${r.net_pay.toFixed(2)} ${sym}</td>
@@ -5807,8 +5781,6 @@
       const nameEn = document.getElementById('set-name-en')?.value || DB.settings.nameEn;
       const nameRu = document.getElementById('set-name-ru')?.value || DB.settings.nameRu;
       const address = document.getElementById('set-address')?.value ?? DB.settings.address;
-      const vatRateEl = document.getElementById('set-vat-rate');
-      if (vatRateEl) DB.settings.vatRate = parseFloat(vatRateEl.value) || DB.settings.vatRate;
       DB.settings.nameAr = nameAr;
       DB.settings.nameEn = nameEn;
       DB.settings.nameRu = nameRu;
@@ -5818,7 +5790,7 @@
       const sbBranch = document.getElementById('sb-branch');
       if (sbName) sbName.textContent = DB.settings['name' + currentLang.charAt(0).toUpperCase() + currentLang.slice(1)] || nameAr;
       if (sbBranch) sbBranch.textContent = address;
-      // Recalc cart in case VAT changed
+      // Recalc cart
       calcCart();
     }
 
@@ -5837,7 +5809,7 @@
       if (_liveListenersAttached) return;
       _liveListenersAttached = true;
       const liveIds = ['set-name-ar','set-name-en','set-name-ru','set-address',
-                       'set-vat','set-cashier','set-vat-rate','set-inv-num','set-whatsapp'];
+                       'set-cashier','set-inv-num','set-whatsapp'];
       liveIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', scheduleAutoSave);
@@ -5855,10 +5827,8 @@
       document.getElementById('set-name-en').value = s.nameEn || '';
       document.getElementById('set-name-ru').value = s.nameRu || '';
       document.getElementById('set-address').value = s.address || '';
-      document.getElementById('set-vat').value = s.vat || '';
       document.getElementById('set-cashier').value = s.cashier || '';
       document.getElementById('set-currency').value = s.currency || 'EGP';
-      document.getElementById('set-vat-rate').value = s.vatRate || 14;
       document.getElementById('set-inv-num').value = s.invoiceNum || 1001;
       document.getElementById('set-whatsapp').value = s.whatsapp || WHATSAPP_NUM;
       document.getElementById('set-dark-mode').checked = (s.theme || 'dark') === 'dark';
@@ -5889,10 +5859,8 @@
       DB.settings.nameEn = document.getElementById('set-name-en').value;
       DB.settings.nameRu = document.getElementById('set-name-ru').value;
       DB.settings.address = document.getElementById('set-address').value;
-      DB.settings.vat = document.getElementById('set-vat').value;
       DB.settings.cashier = document.getElementById('set-cashier').value;
       DB.settings.currency = document.getElementById('set-currency').value;
-      DB.settings.vatRate = parseFloat(document.getElementById('set-vat-rate').value) || 14;
       DB.settings.invoiceNum = parseInt(document.getElementById('set-inv-num').value) || 1001;
       DB.settings.whatsapp = document.getElementById('set-whatsapp').value; syncWhatsAppLinks();
       // Save exchange rates
