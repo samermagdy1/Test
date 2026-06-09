@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 
 <head>
@@ -2080,8 +2080,8 @@
     }
 
     .receipt-logo img {
-      max-width: 60mm;
-      max-height: 20mm;
+      max-width: 68mm;
+      max-height: 32mm;
     }
 
     .receipt-header {
@@ -5232,8 +5232,8 @@
         : (inv.tableName || '-');
       const pmLabel = inv.payMethod === 'cash' ? tl.cash : inv.payMethod === 'card' ? tl.card : tl.network;
       const logoHtml = s.logo
-        ? `<img src="${s.logo}" style="max-height:16mm;max-width:52mm;display:block;margin:0 auto 4px;">`
-        : `<div style="font-size:26px;text-align:center;margin-bottom:2px;">☕</div>`;
+        ? `<img src="${s.logo}" style="max-height:30mm;max-width:66mm;display:block;margin:0 auto 6px;border-radius:6px;">`
+        : `<div style="font-size:34px;text-align:center;margin-bottom:4px;">☕</div>`;
 
       // Build items rows as table for perfect alignment
       const itemRows = inv.items.map(ci => {
