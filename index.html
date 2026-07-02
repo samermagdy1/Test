@@ -7150,73 +7150,7 @@ document.addEventListener('keydown', function(e){
     });
   </script>
 
-<script>
-(function () {
-  const CORRECT_PASSWORD = "ضع_كلمة_السر_هنا"; // غيّرها لكلمة السر الخاصة بك
-  const DEVELOPER_CONTACT = "example@email.com"; // بريد أو رقم التواصل مع المطور
 
-  // إخفاء محتوى الصفحة مبدئياً
-  document.body.style.visibility = "hidden";
-
-  function showPasswordPrompt() {
-    const overlay = document.createElement("div");
-    overlay.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #0f0f0f; color: #fff; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; z-index: 999999;
-      font-family: 'Segoe UI', Tahoma, Arial, sans-serif; text-align: center; direction: rtl;
-    `;
-
-    overlay.innerHTML = `
-      <div style="max-width: 380px; width: 90%;">
-        <h2 style="margin-bottom: 10px;">🔒 هذه الصفحة محمية</h2>
-        <p style="color: #ccc; margin-bottom: 20px;">
-          لأسباب أمنية، يرجى إدخال كلمة السر للمتابعة.
-        </p>
-        <input id="pwInput" type="password" placeholder="كلمة السر"
-          style="padding: 10px; width: 100%; border-radius: 6px; border: 1px solid #444;
-                 background: #1a1a1a; color: #fff; margin-bottom: 12px; box-sizing: border-box;">
-        <br>
-        <button id="pwSubmit"
-          style="padding: 10px 20px; border: none; border-radius: 6px;
-                 background: #2563eb; color: #fff; cursor: pointer; width: 100%;">
-          دخول
-        </button>
-        <p id="pwError" style="color: #f87171; margin-top: 12px; display: none;">
-          كلمة السر غير صحيحة، أو إذا كنت لا تملكها، يرجى التواصل مع المطور
-          على: <strong>${DEVELOPER_CONTACT}</strong>
-        </p>
-      </div>
-    `;
-
-    document.documentElement.appendChild(overlay);
-
-    const input = overlay.querySelector("#pwInput");
-    const button = overlay.querySelector("#pwSubmit");
-    const error = overlay.querySelector("#pwError");
-
-    function tryUnlock() {
-      if (input.value === CORRECT_PASSWORD) {
-        overlay.remove();
-        document.body.style.visibility = "visible";
-      } else {
-        error.style.display = "block";
-        input.value = "";
-        input.focus();
-      }
-    }
-
-    button.addEventListener("click", tryUnlock);
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") tryUnlock();
-    });
-
-    input.focus();
-  }
-
-  document.addEventListener("DOMContentLoaded", showPasswordPrompt);
-})();
-</script>
  
 </body>
 
