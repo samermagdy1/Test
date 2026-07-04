@@ -7151,7 +7151,52 @@ document.addEventListener('keydown', function(e){
   </script>
 
 
- 
+ <script>
+(function(){
+  var CORRECT_PASSWORD = "Hany5555";
+
+  var gate   = document.getElementById('cafe-gate');
+  var input  = document.getElementById('cafe-pass');
+  var button = document.getElementById('cafe-submit');
+  var error  = document.getElementById('cafe-error');
+
+  document.body.classList.add('cafe-locked');
+
+  // إنشاء حبوب قهوة عشوائية للخلفية
+  for (var i = 0; i < 18; i++) {
+    var bean = document.createElement('div');
+    bean.className = 'bean';
+    bean.style.left = Math.random() * 100 + '%';
+    bean.style.animationDuration = (8 + Math.random() * 10) + 's';
+    bean.style.animationDelay = (Math.random() * 10) + 's';
+    bean.style.transform = 'scale(' + (0.7 + Math.random() * 0.8) + ')';
+    gate.appendChild(bean);
+  }
+
+  function tryUnlock(){
+    if (input.value === CORRECT_PASSWORD) {
+      gate.classList.add('unlocked');
+      document.body.classList.remove('cafe-locked');
+      setTimeout(function(){ gate.remove(); }, 850);
+    } else {
+      error.classList.add('show');
+      input.classList.remove('shake');
+      void input.offsetWidth; // إعادة تشغيل الأنيميشن
+      input.classList.add('shake');
+      input.value = '';
+      input.focus();
+    }
+  }
+
+  button.addEventListener('click', tryUnlock);
+  input.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') tryUnlock();
+    error.classList.remove('show');
+  });
+
+  window.addEventListener('load', function(){ input.focus(); });
+})();
+</script>
 </body>
 
 </html>
