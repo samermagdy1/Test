@@ -7150,19 +7150,150 @@ document.addEventListener('keydown', function(e){
     });
   </script>
 
-
- <script>
+<script>
 (function(){
   var CORRECT_PASSWORD = "Hany5555";
 
-  var gate   = document.getElementById('cafe-gate');
-  var input  = document.getElementById('cafe-pass');
-  var button = document.getElementById('cafe-submit');
-  var error  = document.getElementById('cafe-error');
+  // ---------- الأنماط (CSS) ----------
+  var style = document.createElement('style');
+  style.textContent = `
+    :root{
+      --coffee-dark:#2A1A12;
+      --coffee-medium:#5C3A24;
+      --cream:#F3E7D3;
+      --latte:#C9A277;
+      --ember:#B5502F;
+      --gold:#D8A657;
+    }
+    #cafe-gate{
+      position:fixed; inset:0; z-index:99999;
+      display:flex; align-items:center; justify-content:center;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(181,80,47,.25), transparent 55%),
+        radial-gradient(ellipse at 80% 85%, rgba(216,166,87,.18), transparent 55%),
+        var(--coffee-dark);
+      font-family:'Cairo','Tajawal',sans-serif;
+      overflow:hidden;
+      transition:opacity .8s ease, visibility .8s ease;
+    }
+    #cafe-gate .bean{
+      position:absolute; bottom:-40px;
+      width:14px; height:20px; border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
+      background:linear-gradient(135deg,var(--coffee-medium),var(--coffee-dark));
+      opacity:.5; animation:cafeRise linear infinite;
+    }
+    #cafe-gate .bean::after{
+      content:''; position:absolute; top:10%; left:48%;
+      width:1.5px; height:80%; background:rgba(243,231,211,.4); border-radius:2px;
+    }
+    @keyframes cafeRise{
+      0%{ transform:translateY(0) rotate(0deg); opacity:0; }
+      10%{ opacity:.6; }
+      90%{ opacity:.4; }
+      100%{ transform:translateY(-110vh) rotate(340deg); opacity:0; }
+    }
+    #cafe-gate .card{
+      position:relative; z-index:2; width:min(360px,88vw); text-align:center;
+      padding:44px 32px 36px;
+      background:rgba(42,26,18,.55);
+      border:1px solid rgba(216,166,87,.35);
+      border-radius:18px;
+      box-shadow:0 25px 60px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+      backdrop-filter:blur(6px);
+      animation:cafeCardIn 1s cubic-bezier(.2,.8,.2,1);
+    }
+    @keyframes cafeCardIn{
+      from{ opacity:0; transform:translateY(24px) scale(.96); }
+      to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+    #cafe-gate .cup-wrap{ position:relative; width:80px; height:70px; margin:0 auto 18px; }
+    #cafe-gate .steam{
+      position:absolute; bottom:52px; width:5px; height:26px;
+      background:linear-gradient(to top, rgba(243,231,211,.7), transparent);
+      border-radius:6px; filter:blur(1.5px);
+      animation:cafeSteam 2.6s ease-in-out infinite;
+    }
+    #cafe-gate .steam.s1{ left:22px; animation-delay:0s; }
+    #cafe-gate .steam.s2{ left:38px; animation-delay:.6s; height:32px;}
+    #cafe-gate .steam.s3{ left:54px; animation-delay:1.1s; }
+    @keyframes cafeSteam{
+      0%{ transform:translateY(0) scaleX(1); opacity:0; }
+      25%{ opacity:.8; }
+      100%{ transform:translateY(-38px) scaleX(1.6); opacity:0; }
+    }
+    #cafe-gate .cup{
+      position:absolute; bottom:0; left:10px; width:60px; height:38px;
+      background:linear-gradient(180deg,var(--gold),var(--ember));
+      border-radius:0 0 26px 26px;
+    }
+    #cafe-gate .cup::before{
+      content:''; position:absolute; right:-14px; top:6px;
+      width:16px; height:20px; border:5px solid var(--ember);
+      border-left:none; border-radius:0 12px 12px 0;
+    }
+    #cafe-gate .saucer{
+      position:absolute; bottom:-6px; left:2px; width:76px; height:8px;
+      background:var(--latte); border-radius:50%;
+    }
+    #cafe-gate h1{ margin:0 0 4px; color:var(--cream); font-size:24px; font-weight:800; letter-spacing:.5px; }
+    #cafe-gate p{ margin:0 0 22px; color:var(--latte); font-size:13.5px; line-height:1.7; }
+    #cafe-gate input{
+      width:100%; box-sizing:border-box; text-align:center;
+      padding:13px 16px; margin-bottom:14px;
+      border-radius:10px; border:1.5px solid rgba(216,166,87,.4);
+      background:rgba(243,231,211,.08); color:var(--cream);
+      font-size:15px; letter-spacing:2px; outline:none;
+      transition:border-color .25s, box-shadow .25s, transform .15s;
+    }
+    #cafe-gate input::placeholder{ color:rgba(243,231,211,.45); letter-spacing:normal; }
+    #cafe-gate input:focus{ border-color:var(--gold); box-shadow:0 0 0 4px rgba(216,166,87,.15); }
+    #cafe-gate input.shake{ animation:cafeShake .45s; border-color:var(--ember); }
+    @keyframes cafeShake{
+      20%,60%{ transform:translateX(-8px); }
+      40%,80%{ transform:translateX(8px); }
+    }
+    #cafe-gate button{
+      width:100%; padding:13px; border:none; border-radius:10px;
+      background:linear-gradient(135deg,var(--ember),#8c3a20);
+      color:var(--cream); font-weight:700; font-size:15px; cursor:pointer;
+      letter-spacing:.5px; box-shadow:0 8px 18px rgba(181,80,47,.35);
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    #cafe-gate button:hover{ transform:translateY(-2px); box-shadow:0 12px 24px rgba(181,80,47,.45); }
+    #cafe-gate button:active{ transform:translateY(0); }
+    #cafe-gate .error-msg{
+      min-height:18px; margin-top:10px; color:#E8896B; font-size:12.5px;
+      opacity:0; transition:opacity .25s;
+    }
+    #cafe-gate .error-msg.show{ opacity:1; }
+    #cafe-gate.unlocked{ opacity:0; visibility:hidden; pointer-events:none; }
+    body.cafe-locked{ overflow:hidden; }
+  `;
+  document.head.appendChild(style);
 
+  // ---------- بناء الـ HTML ----------
+  var gate = document.createElement('div');
+  gate.id = 'cafe-gate';
+  gate.innerHTML = `
+    <div class="card">
+      <div class="cup-wrap">
+        <div class="steam s1"></div>
+        <div class="steam s2"></div>
+        <div class="steam s3"></div>
+        <div class="cup"></div>
+        <div class="saucer"></div>
+      </div>
+      <h1>أهلاً بك في مقهانا</h1>
+      <p>هذه الصفحة محمية بكلمة مرور<br>الرجاء إدخالها للمتابعة</p>
+      <input type="password" id="cafe-pass" placeholder="••••••••" autocomplete="off" />
+      <button id="cafe-submit">دخول ☕</button>
+      <div class="error-msg" id="cafe-error">كلمة المرور غير صحيحة، حاول مرة أخرى</div>
+    </div>
+  `;
+  document.body.appendChild(gate);
   document.body.classList.add('cafe-locked');
 
-  // إنشاء حبوب قهوة عشوائية للخلفية
+  // ---------- حبوب قهوة عائمة ----------
   for (var i = 0; i < 18; i++) {
     var bean = document.createElement('div');
     bean.className = 'bean';
@@ -7173,6 +7304,11 @@ document.addEventListener('keydown', function(e){
     gate.appendChild(bean);
   }
 
+  // ---------- منطق التحقق ----------
+  var input  = document.getElementById('cafe-pass');
+  var button = document.getElementById('cafe-submit');
+  var error  = document.getElementById('cafe-error');
+
   function tryUnlock(){
     if (input.value === CORRECT_PASSWORD) {
       gate.classList.add('unlocked');
@@ -7181,7 +7317,7 @@ document.addEventListener('keydown', function(e){
     } else {
       error.classList.add('show');
       input.classList.remove('shake');
-      void input.offsetWidth; // إعادة تشغيل الأنيميشن
+      void input.offsetWidth;
       input.classList.add('shake');
       input.value = '';
       input.focus();
@@ -7194,9 +7330,10 @@ document.addEventListener('keydown', function(e){
     error.classList.remove('show');
   });
 
-  window.addEventListener('load', function(){ input.focus(); });
+  input.focus();
 })();
 </script>
+
 </body>
 
 </html>
